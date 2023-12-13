@@ -140,9 +140,9 @@ if(datamanager.hasreadAccess('cal2f4f43')){
     datamanager.load('cal2f4f43',(res)=>{
         console.log(res)
         cal2f4f43_data=res
-        if(!('starred' in cal2f4f43_data))
+        if(cal2f4f43_data && !('starred' in cal2f4f43_data))
             cal2f4f43_data['starred']={}
-        if(!('events' in cal2f4f43_data))
+        if(cal2f4f43_data && !('events' in cal2f4f43_data))
             cal2f4f43_data['events']={}
         cal2f4f43_createcalender(cal2f4f43_year)
         cal2f4f43_displaymonth(cal2f4f43_month,cal2f4f43_year)
@@ -453,5 +453,4 @@ document.getElementById('cal2f4f43-side-bar-year-page-now').onclick = ()=>{
 function cal2f4f43_paint() {
     document.getElementById('cal2f4f43').style.backgroundColor=effective.background
     document.getElementById('cal2f4f43').style.color=effective.fontcolor
-
 }

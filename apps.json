@@ -125,5 +125,33 @@
       "write": 0,
       "modify": 0
     }
+  },
+  "fi23ex45": {
+    "code": "http://localhost:2000/apps/custom/fi23ex45/fi23ex45.html",
+    "iconTpe": "fa",
+    "iconSrc": "fal fa-folder",
+    "appname": "File Explorer",
+    "sys": 1,
+    "appId": "fil23ex45",
+    "exec": [],
+    "permission": {
+      "read": 0,
+      "write": 0,
+      "modify": 0
+    }
+  },
+  "ter243min": {
+    "code": "http://localhost:2000/apps/sys/ter243min/ter243min.html",
+    "iconTpe": "fa",
+    "iconSrc": "fal fa-folder",
+    "appname": "Terminal",
+    "sys": 1,
+    "appId": "ter243min",
+    "exec": [],
+    "permission": {
+      "read": 1,
+      "write": 1,
+      "modify":1
+    }
   }
 }

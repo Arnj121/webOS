@@ -80,7 +80,7 @@ document.getElementById('njk39c3ce-numbers-c').onclick = (e)=>{
     document.getElementById('njk39c3ce-answer').innerText=''
 }
 document.getElementById('njk39c3ce-numbers-m+').onclick = (e)=>{
-    njk39c3ce_memory=document.getElementById('njk39c3ce-answer')
+    njk39c3ce_memory=document.getElementById('njk39c3ce-answer').innerText
 }
 document.getElementById('njk39c3ce-numbers-mc').onclick = (e)=>{
     njk39c3ce_memory=''

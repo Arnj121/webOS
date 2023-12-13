@@ -96,14 +96,14 @@
                     </div>
                     <div style="display:flex;" id="njk2d4kd-control-pannel-accounts" class="njk2d4kd-flex-column">
                         <div id="njk2d4kd-control-pannel-accounts-signin-display" class="njk2d4kd-flex-row" style="margin:10px 5px;display: none">
-                            <input type="email" placeholder="Email" class="njk2d4kd-control-pannel-inputs" id="njk2d4kd-control-pannels-accounts-signin-email">
+                            <input  type="email" placeholder="Email" class="njk2d4kd-control-pannel-inputs" id="njk2d4kd-control-pannels-accounts-signin-email">
                             <input type="password" placeholder="Password" class="njk2d4kd-control-pannel-inputs" id="njk2d4kd-control-pannels-accounts-signin-password">
-                            <label class="njk2d4kd-apps-reset" id="njk2d4kd-control-pannel-accounts-signin">Sign in</label>
+                            <label class="njk2d4kd-apps-reset" id="njk2d4kd-control-pannel-accounts-signin">Sign in<i class="fal fa-arrow-right" style="margin-left: 5px"></i></label>
                         </div>
                         <div id="njk2d4kd-control-pannel-logged-display" class="njk2d4kd-flex-column" style="display: none;margin:10px 5px">
                             <label style="margin: 5px;font-size: xx-large">
                                 Logged in as
-                                <label style="margin: 5px 5px 5px 10px;font-size:medium;" id="njk2d4kd-control-pannel-accounts-logged"></label></label>
+                                <label style="margin: 5px 5px 5px 10px;font-size:large;" id="njk2d4kd-control-pannel-accounts-logged"></label></label>
                             <label class="njk2d4kd-apps-reset" id="njk2d4kd-control-pannel-signout" style="font-size:small;margin:5px auto 5px 5px"><i style="margin-right: 5px" class="fal fa-sign-out-alt"></i> Sign Out</label>
                         </div>
                         <label style="margin: 10px 5px 10px 5px">Accounts added</label>
@@ -116,6 +116,7 @@
                                 <label id="njk2d4kd-control-pannel-add"><i class="fal fa-plus" style="margin-right: 5px"></i> Add</label>
                             </div>
                         </div>
+                        <label style="margin: 5px 5px 10px 10px" id="njk2d4kd-control-pannel-none-added">None</label>
                         <div class="njk2d4kd-flex-column" id="njk2d4kd-control-pannel-accounts-list">
 
                         </div>
@@ -153,10 +154,12 @@
                 <div id="njk2d4kd-background-window" class="njk2d4kd-flex-column" >
                     <label style="margin: 10px 25px;font-size: xx-large">Background</label>
                     <img src="#" id="njk2d4kd-background-image" style="background: #f08282;">
-                    <label id="njk2d4kd-no-image" style="margin: 10px 30px">No image Selected</label>
+                    <label style="margin: 10px auto 10px 30px">
+                        <input type="checkbox" checked  id="njk2d4kd-background-default-image"
+                               style="margin: 0 5px;" value="yes">Use default background</label>
                     <label id="njk2d4kd-no-image-remove" style="margin: 10px auto 10px 30px;display: none" >Remove Image</label>
                     <input type="file" accept="image/*" id="njk2d4kd-image-input" hidden/>
-                    <label style="margin: 10px auto 10px 30px" id="njk2d4kd-image-input-btn">Add image</label>
+                    <label style="margin: 10px auto 10px 30px" id="njk2d4kd-image-input-btn">Select image</label>
                     <label style="margin: 10px 30px;">Select background color</label>
                     <input type="color" id="njk2d4kd-background-color-input" value="#f08282">
                     <label id="njk2d4kd-background-apply" style="margin: 10px auto 10px 30px">Apply</label>
@@ -176,7 +179,7 @@
                     </div>
                     <label id="njk2d4kd-dummy-taskbar-remove" style="margin: 10px auto 10px 30px;display: none" >Remove</label>
                     <div id="njk2d4kd-app-drawer-apps-display" class="njk2d4kd-flex-column" style="display: none">
-                        <label style="font-size: large;margin: 10px">Select an App</label>
+                        <label style="font-size: large;margin: 5px">Select an App</label>
                         <div class="njk2d4kd-flex-column" id="njk2d4kd-app-drawer-apps-list">
 
                         </div>
@@ -203,3 +206,6 @@
         </div>
     </div>
 </div>
+<link rel="stylesheet" href="http://localhost:2000/apps/sys/njk2d4kd/njk2d4kd.css">
+<script src="http://localhost:2000/apps/sys/njk2d4kd/njk2d4kd.js"></script>
+<link rel="stylesheet" href="http://localhost:2045/public/fontawesome.css">

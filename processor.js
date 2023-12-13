@@ -17,7 +17,9 @@ const getApp =(req,res)=>{
 const signup =(req,res)=>{
     let email = req.body.email
     let password = req.body.password
+    let uniqueId = req.body.uniqueId
     let username = req.body.username
+    console.log(uniqueId,email)
     db.getDb().collection('users').findOne({'email':email},(err,result)=>{
         if(result && result.length){
             res.send({'status':0})
@@ -27,6 +29,7 @@ const signup =(req,res)=>{
                 'email': email,
                 'password': password,
                 'username': username,
+                'uniqueId':uniqueId,
                 'main': {
                     'appdata': {},
                     'apps': {},
@@ -34,6 +37,7 @@ const signup =(req,res)=>{
                 },
                 'driveA':{}
             })
+            fs.mkdir(path.join(__dirname,'static','userfiles','users',uniqueId),(err)=>{console.log(err)})
             res.send({'status': 1})
         }
     })
@@ -44,14 +48,16 @@ const login = (req,res)=>{
     let password = req.body.password
     db.getDb().collection('users').findOne({'email':email,'password':password},(err,result)=>{
         if(result) {
-            console.log(result)
             let username = result.username
-            res.send({'status':1,'username':username})
+            let uniqueId = result.uniqueId
+            res.send({'status':1,'username':username,'uniqueId':uniqueId})
         }else {
             res.send({'status':0})
         }
     })
 }
+
+//TODO
 const savedata = (req,res)=>{
     let email = req.body.email
     let data = req.body.data
@@ -62,7 +68,7 @@ const savedata = (req,res)=>{
     db.getDb().collection('users').findOneAndUpdate({'email':email},{$set:set})
     res.send({'status':1})
 }
-
+//TODO
 const loaddata = (req,res)=>{
     let email = req.query.email
     let appid=req.query.appId
@@ -71,7 +77,7 @@ const loaddata = (req,res)=>{
         res.send({'status':1,'data':data})
     })
 }
-
+//TODO
 const initapp =(req,res)=>{
     let email = req.body.email
     let executors = req.body.executors
@@ -83,6 +89,7 @@ const initapp =(req,res)=>{
     db.getDb().collection('users').findOneAndUpdate({'email':email},{$set:{'main.appdata':appdata,'main.executors':executors,'main.apps':apps}})
     res.send({'status':1})
 }
+//TODO
 const saveapp =(req,res)=>{
     let email = req.body.email
     let executors = req.body.executors
@@ -95,13 +102,14 @@ const saveapp =(req,res)=>{
     db.getDb().collection('users').findOneAndUpdate({'email':email},{$set:s})
     res.send({'status':1})
 }
-
+//TODO
 const loadapps=(req,res)=>{
     let email = req.query.email
     db.getDb().collection('users').findOne({'email':email},(err,result)=>{
         res.send({'status':1,'data':result.main.apps})
     })
 }
+//TODO
 const saveapps=(req,res)=>{
     let email =req.body.email
     let appid = req.body.appid
@@ -115,5 +123,114 @@ const saveapps=(req,res)=>{
         res.send({'status':1})
     })
 }
-module.exports={getApps,getApp,signup,login,savedata,loaddata,initapp,saveapp,loadapps,saveapps}
+
+const root = (req,res)=>{
+    let email = req.query.email
+    fs.readdir(`./static/userfiles/users/${email}`,(err,result)=>{
+        res.send(JSON.stringify({'status':1,'result':result}))
+    })
+}
+const structure = (req,res)=>{
+    let uniqueId = req.query.uniqueId
+    db.getDb().collection('users').findOne({'uniqueId':uniqueId},(err,result)=>{
+        res.send(JSON.stringify({'status':1,'structure':result['driveA']}))
+    })
+}
+//TODO
+const getdetails = (req,res)=>{
+    let name = req.query.name
+    let email = req.query.email
+    fs.stat(`./static/userfiles/users/${email}/${name}`,(err,result)=>{
+        res.send(JSON.stringify({'status':1,'result':result}))
+    })
+
+}
+
+const deleteFile = (req,res)=>{
+    let name = req.query.name
+    let email = req.query.email
+    fs.unlink(`./static/userfiles/users/${email}/${name}`,(err)=>{
+        if(err)
+            res.send(JSON.stringify({'status':0}))
+        else
+            res.send(JSON.stringify({'status':1}))
+    })
+}
+const createFolder = (req,res)=>{
+    let name = req.query.name
+    let path = req.query.path
+    let uniqueId = req.query.uniqueId
+    console.log(name,uniqueId,path,163)
+    fs.mkdir(`./static/userfiles/${req.query.userguest}/${uniqueId}/${path}/${name}`,(err)=>{
+        if(err)
+            res.send(JSON.stringify({'status':0}))
+        else
+            res.send(JSON.stringify({'status':1}))
+    })
+}
+const createFile = (req,res)=>{
+    let name = req.body.name
+    let uniqueId = req.body.uniqueId
+    let path = req.body.path
+    fs.open(`./static/userfiles/${req.query.userguest}/${uniqueId}/${path}/${name}`,'w',(err)=>{
+        if(err)
+            res.send(JSON.stringify({'status':0}))
+        else
+            res.send(JSON.stringify({'status':1}))
+    })
+}
+const getChildren = (req,res)=>{
+    let path = req.query.path
+    console.log(req.query)
+    let userguest = req.query.userguest
+    let uniqueId = req.query.uniqueId
+    let p=`./static/userfiles/${userguest}/${uniqueId}/${path}`
+    console.log(p,188)
+    fs.readdir(p,{ withFileTypes: true },async (err,result)=> {
+            console.log(result,190)
+            if (err) {
+                res.send(JSON.stringify({'status': 0}))
+            } else {
+                let t = []
+                result.forEach(e=>{
+                    let s = {},k=fs.statSync(`./static/userfiles/${req.query.userguest}/${uniqueId}/${path}/${e.name}`)
+                    s['name'] = e.name
+                    s['size'] = k.size
+                    s['fileType'] = e.isFile()?'file':'Dir'
+                    s['time'] = k.birthtime
+                    t.push(s)
+                })
+                res.send(JSON.stringify({'status': 1, 'result': t}))
+            }
+        }
+    )
+}
+
+const rename = (req,res)=>{
+    let uniqueId = req.query.uniqueId;
+    let src = req.query.src;
+    let des = req.query.des;
+    fs.rename(path.join(`./static/userfiles/${req.query.userguest}/${uniqueId}/${src}`),
+        path.join(`./static/userfiles/${req.query.userguest}/${uniqueId}/${des}`),(err)=>{
+        if (err)
+            res.send(JSON.stringify({'status': 0}))
+        else
+            res.send(JSON.stringify({'status':1}))
+        }
+    )
+}
+
+const initDir =(req,res)=>{
+    let id = req.query.id
+    fs.mkdir(`./static/userfiles/guest/${id}`,(err)=>{
+        if(err) console.log(err)
+    })
+    fs.mkdir(`./static/userfiles/guest/${id}/home`,(err)=>{
+        if(err) console.log(err)
+    })
+}
+
+
+module.exports={rename,createFile,getChildren,deleteFile,createFolder,getdetails,root,structure,getApps,getApp,signup,
+    login,savedata,loaddata,initapp,saveapp,loadapps,saveapps,initDir}
 

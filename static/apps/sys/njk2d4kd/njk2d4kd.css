@@ -124,7 +124,7 @@
     border-radius: 5px;
     padding-inline: 5px;
     height: 30px;
-    width: 80px;
+    width: 160px;
     outline: none;
     font-family: "Open Sans", sans-serif;
     margin: auto 10px;
@@ -175,7 +175,7 @@
 #njk2d4kd-app-drawer-apps-display{
     height: 300px;
     width: 250px;
-    margin: 10px 20px;
+    margin: 5px 20px;
 }
 #njk2d4kd-app-drawer-apps-list{
     background-color: rgba(55, 71, 79,1);
@@ -183,6 +183,8 @@
     width: 100%;
     margin: 0 10px;
     overflow-y: scroll;
+    border-radius: 5px;
+    color: #d1d1d0;
 }
 .njk2d4kd-app-drawer-apps-list-obj{
     padding: 5px 10px;

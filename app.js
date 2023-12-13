@@ -21,5 +21,5 @@ app.post('/saveapp',processor.saveapp)
 app.get('/loadapps',processor.loadapps)
 app.post('/saveapps',processor.saveapps)
 app.listen(2000,()=>{
-    console.log('we are live')
+    console.log('we are live on 2000')
 })

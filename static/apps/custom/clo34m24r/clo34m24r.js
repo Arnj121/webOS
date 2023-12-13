@@ -56,7 +56,7 @@ function clo34m24r_loadData() {
     }
 }
 function clo34m24r_warn() {
-    document.getElementById('clo34m24r-main-page').innerText='Allow read and write permission!'
+    document.getElementById('clo34m24r-main-page').innerText='Allow read and write permission.'
 }
 clo34m24r_loadData()
 document.getElementById('clo34m24r-minimize').onclick = ()=>{

@@ -417,24 +417,32 @@ document.getElementById('njk2d4kd-control-pannel-nav-accounts').onclick = ()=> {
     document.getElementById('njk2d4kd-control-pannel-accounts-list').innerText = ''
     document.getElementById('njk2d4kd-control-pannel-nav-' + controlpannel).style.borderWidth = '0 0 2px 0'
     document.getElementById('njk2d4kd-control-pannel-' + controlpannel).style.display = 'flex'
+    // let acc=
+
     if (sys.settings.controlpannel.loggedin != 0) {
         document.getElementById('njk2d4kd-control-pannel-accounts-logged').innerText = sys.settings.controlpannel.loggedin
         document.getElementById('njk2d4kd-control-pannel-logged-display').style.display = 'flex'
         document.getElementById('njk2d4kd-control-pannel-accounts-signin-display').style.display = 'none'
-        let acc = sys.settings.controlpannel.accounts
+        let acc = sys.getaccounts()
         let acckeys = Object.keys(acc)
+        if(acckeys.length==0)
+            document.getElementById('njk2d4kd-control-pannel-none-added').style.display='inline'
+        else
+            document.getElementById('njk2d4kd-control-pannel-none-added').style.display='none'
         for (let i = 0; i < acckeys.length; i++)
             createAccountObj(acckeys[i])
     } else {
         document.getElementById('njk2d4kd-control-pannel-accounts-signin-display').style.display = 'flex'
         document.getElementById('njk2d4kd-control-pannel-logged-display').style.display = 'none'
+        document.getElementById('njk2d4kd-control-pannel-none-added').style.display='none'
     }
 }
-document.getElementById('njk2d4kd-control-pannel-accounts-signin').onclick=()=>{
+document.getElementById('njk2d4kd-control-pannel-accounts-signin').onclick=async()=>{
     let email = document.getElementById('njk2d4kd-control-pannels-accounts-signin-email').value
     let password = document.getElementById('njk2d4kd-control-pannels-accounts-signin-password').value
-    sys.login(email,password)
-    setTimeout(()=>{document.getElementById('njk2d4kd-control-pannel-nav-accounts').click()},300)
+    let st = await sys.login(email,password)
+    if(st)
+        setTimeout(()=>{document.getElementById('njk2d4kd-control-pannel-nav-accounts').click()},100)
 }
 document.getElementById('njk2d4kd-control-pannel-add-account').onclick=()=> {
     if (njk2d4kd_add_account && sys.settings.controlpannel.loggedin!=0) {
@@ -461,7 +469,11 @@ document.getElementById('njk2d4kd-control-pannel-add').onclick = ()=>{
 }
 document.getElementById('njk2d4kd-control-pannel-signout').onclick = ()=>{
     document.getElementById('njk2d4kd-control-pannel-logged-display').style.display='none'
-    sys.reset()
+    logout()
+    if(njk2d4kd_add_account){
+        document.getElementById('njk2d4kd-control-pannel-add-display').style.display = 'none'
+        njk2d4kd_add_account=0
+    }
     document.getElementById('njk2d4kd-control-pannel-nav-accounts').click()
 
 }
@@ -489,7 +501,8 @@ document.getElementById('njk2d4kd-control-pannel-nav-data').onclick = ()=>{
     }
 }
 document.getElementById('njk2d4kd-control-pannel-data-signin').onclick = ()=>{
-    document.getElementById('njk2d4kd-control-pannel-nav-accounts').click()
+    setTimeout(()=>{document.getElementById('njk2d4kd-control-pannel-nav-accounts').click()},200)
+
 }
 document.getElementById('njk2d4kd-control-pannel-data-interval-toggle').onclick = ()=>{
     if(sys.settings.controlpannel.data.saveperiod){
@@ -508,10 +521,15 @@ document.getElementById('njk2d4kd-control-pannel-data-interval-toggle').onclick 
 document.getElementById('njk2d4kd-control-pannel-data-interval').onchange= ()=>{
     sys.settings.controlpannel.data.interval=document.getElementById('njk2d4kd-control-pannel-data-interval').value
 }
-document.getElementById('njk2d4kd-control-pannel-data-save-now').onclick = ()=>{
-    sys.savesettings()
-    document.getElementById('njk2d4kd-control-pannel-data-last-saved').innerText=new Date().toDateString()
-    sys.notify('njk2d4kd','Data has been saved')
+document.getElementById('njk2d4kd-control-pannel-data-save-now').onclick = async()=> {
+    let s = await sys.savesettings()
+    if (s) {
+        document.getElementById('njk2d4kd-control-pannel-data-last-saved').innerText = new Date().toDateString()
+        sys.notify('njk2d4kd', 'Data has been saved')
+    }
+    else{
+        sys.notify('njk2d4kd', 'error while saving data')
+    }
 }
 document.getElementById('njk2d4kd-background').onclick = ()=>{
     if(df3mk3lm_curtab.length!=0){
@@ -519,14 +537,33 @@ document.getElementById('njk2d4kd-background').onclick = ()=>{
     }
     df3mk3lm_curtab = 'njk2d4kd-background-window'
     document.getElementById(df3mk3lm_curtab).style.display = 'flex'
-    if(sys.settings.background.backgroundimage) {
-        document.getElementById('njk2d4kd-no-image').style.display = 'none'
+    //0-none
+    //1-default
+    //2-custom
+    if(sys.settings.background.backgroundimage==2) {
         document.getElementById('njk2d4kd-no-image-remove').style.display = 'inline'
+        document.getElementById('njk2d4kd-background-image').src=sys.settings.background.backgroundurl
+    }
+    else if(sys.settings.background.backgroundimage==1) {
+        document.getElementById('njk2d4kd-no-image-remove').style.display = 'none'
+        document.getElementById('njk2d4kd-background-image').src=sys.default_settings.background.backgroundurl
     }
     else{
-        document.getElementById('njk2d4kd-no-image').style.display = 'inline'
         document.getElementById('njk2d4kd-no-image-remove').style.display = 'none'
     }
+}
+document.getElementById('njk2d4kd-background-default-image').onclick=(e)=>{
+    console.log(document.getElementById(e.target.id).checked);
+    if(document.getElementById(e.target.id).checked){
+        document.getElementById('njk2d4kd-background-image').src=sys.default_settings.background.backgroundurl
+        sys.setbackground('backgroundimage',1)
+        document.getElementById('njk2d4kd-no-image-remove').style.display = 'none'
+    }
+    else{
+        sys.setbackground('backgroundimage',0)
+        document.getElementById('njk2d4kd-background-image').src='#'
+    }
+    sys.initSettings()
 }
 document.getElementById('njk2d4kd-no-image-remove').onclick = ()=>{
     document.getElementById('njk2d4kd-background-image').src='#'
@@ -535,7 +572,6 @@ document.getElementById('njk2d4kd-no-image-remove').onclick = ()=>{
     sys.setbackground('backgroundurl','')
     URL.revokeObjectURL(df3mk3lm_url)
     sys.initSettings()
-    document.getElementById('njk2d4kd-no-image').style.display = 'inline'
     document.getElementById('njk2d4kd-no-image-remove').style.display = 'none'
 }
 document.getElementById('njk2d4kd-image-input-btn').onclick = ()=>{
@@ -545,7 +581,8 @@ document.getElementById('njk2d4kd-image-input').onchange = (e)=>{
     let files = e.target.files[0]
     df3mk3lm_url = URL.createObjectURL(files)
     document.getElementById('njk2d4kd-background-image').src=df3mk3lm_url
-    sys.setbackground('backgroundimage',1)
+    document.getElementById('njk2d4kd-background-default-image').checked=false
+    sys.setbackground('backgroundimage',2)
     sys.setbackground('backgroundurl', df3mk3lm_url)
 }
 
@@ -554,8 +591,8 @@ document.getElementById('njk2d4kd-background-apply').onclick = ()=>{
     sys.setbackground('backgroundcolor',v)
     document.getElementById('njk2d4kd-background-image').style.backgroundColor=v
     sys.initSettings()
-    document.getElementById('njk2d4kd-no-image').style.display = 'none'
-    document.getElementById('njk2d4kd-no-image-remove').style.display = 'inline'
+    if(sys.settings.background.backgroundimage==2)
+        document.getElementById('njk2d4kd-no-image-remove').style.display = 'inline'
 }
 document.getElementById('njk2d4kd-background-color-input').oninput = (e)=>{
     document.getElementById('njk2d4kd-background-image').style.backgroundColor=e.target.value
@@ -564,7 +601,7 @@ document.getElementById('njk2d4kd-background-color-input').oninput = (e)=>{
 //djkfbjdbfhjksbdsfhdjhbsdjbfv
 
 document.getElementById('njk2d4kd-app-drawer').onclick = ()=>{
-    if(df3mk3lm_curtab.length!=0){
+    if(df3mk3lm_curtab.length!=0 && df3mk3lm_curtab != 'njk2d4kd-app-drawer'){
         document.getElementById(df3mk3lm_curtab).style.display = 'none'
     }
     df3mk3lm_curtab = 'njk2d4kd-app-drawer-window'
@@ -667,7 +704,7 @@ document.getElementById('njk2d4kd-dummy-taskbar-right-add').onclick = ()=>{
     }
 }
 document.getElementById('njk2d4kd-app-drawer-apps-apply').onclick =()=>{
-    let data = Apps[df3mk3lm_appselected.split('-')[0]]
+    let data = appmanager.Apps[df3mk3lm_appselected.split('-')[0]]
     if(data.iconTpe=='fa'){
         let ele = document.createElement('i')
         ele.className = data.iconSrc+' scale15 app-drawer-obj hidable '+df3mk3lm_taskbarside
@@ -701,7 +738,7 @@ document.getElementById('njk2d4kd-app-drawer-apps-apply').onclick =()=>{
         if(df3mk3lm_taskbarside=='left') {
             document.getElementById('app-drawer').prepend(ele)
             ele1.id = data.appId+'-dummy-taskbar-left-obj'
-            document.getElementById('njk2d4kd-dummy-taskbar-left').append(ele1)
+            document.getElementById('njk2d4kd-dummy-taskbar-left').prepend(ele1)
         }
         else {
             document.getElementById('app-drawer').append(ele)
@@ -818,7 +855,7 @@ function paint() {
 }
 
 function listApps() {
-    let apps = JSON.stringify(Apps)
+    let apps = JSON.stringify(appmanager.Apps)
     apps = JSON.parse(apps)
     let keys = Object.keys(apps)
     for(let i of keys){

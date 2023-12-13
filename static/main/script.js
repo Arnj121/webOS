@@ -9,13 +9,37 @@ var effective={
 var months={1:'Jan',2:'Feb',3:'Mar',4:'Apr',5:'May',6:'Jun',7:'Jul',8:'Aug',9:'Sep',10:'Oct',11:'Nov',12:'Dec'}
 var add='add',remove='remove'
 var appfocused=0
-var userdetails={'name':0,'email':0,'password':0}
 var clockKeeper, maxZIndex=1,md=0,selected=0,curx,cury,objx,objy
-
 var appview = 0, runapp=0, userprofile=0,notification=0
 var clockicon = "<i class='fal fa-clock' style='margin: auto 5px' id='clock'></i>"
 var calendericon = "<i class='fal fa-calendar-alt' style='margin: auto 5px' id='calendar'></i>"
 var keyupPipeline={}
+
+class User{
+    userdetails={'name':0,'email':0,'password':0,'uniqueId':0}
+    guestId='guest'+Math.floor(Math.random()*10000).toString()
+    init(name,email,password,uniqueId){
+        this.userdetails = {'name':name,'email':email,'password':password,'uniqueId':uniqueId}
+    }
+    getName(){
+        return this.userdetails.name
+    }
+    getEmail(){
+        return this.userdetails.email
+    }
+    getPassword(){
+        return this.userdetails.password
+    }
+    getUniqueId(){
+        return this.userdetails.uniqueId
+    }
+    IsloggedIn(){
+        return this.userdetails.name!=0
+    }
+    reset(){
+        this.userdetails = {'name':0,'email':0,'password':0}
+    }
+}
 
 class TaskManager{
     executeAppPipeline={}
@@ -82,7 +106,8 @@ class TaskManager{
     }
     restartApp(appId) {
         this.KillApp(appId)
-        this.executeApp(appId)
+        setTimeout(()=>{this.executeApp(appId)},100)
+
     }
     loadResources(appId){
         let appcode = appmanager.Apps[appId].code
@@ -280,6 +305,35 @@ class AppManager{
                 modify:0
             },
             notification:1
+        },
+        fil23ex45:{
+            code: 'http://localhost:2000/apps/sys/fil23ex45/fil23ex45.html',
+            iconTpe: 'fa',
+            iconSrc: 'fal fa-folder',
+            appname: 'Files',
+            sys: 1,
+            appId: 'fil23ex45',
+            exec: [],
+            permission:{
+                read:1,
+                write:1,
+                modify:1
+            },
+            notification:1
+        },
+        ter243min: {
+            code: 'http://localhost:2000/apps/sys/ter243min/ter243min.html',
+            iconTpe: 'fa',
+            iconSrc: 'far fa-terminal',
+            appname: 'Terminal',
+            sys: 1,
+            appId: "ter243min",
+            exec: [],
+            permission: {
+                "read": 1,
+                "write": 1,
+                "modify":1
+            }
         }
     }
     executors = {
@@ -293,7 +347,7 @@ class AppManager{
     }
 
     saveApp(app) {
-        if(userdetails['email']!=0)
+        if(user.getEmail()!=0)
             datamanager.saveapp(app)
     }
     install(appid,app,callback){
@@ -359,13 +413,12 @@ class AppManager{
             if(xhr.readyState==4){
                 let res = JSON.parse(xhr.response)
                 if(res.status){
-                    console.log(res.data)
                     appmanager.Apps=res.data
                     sys.initAppview()
                 }
             }
         }
-        xhr.open('GET','http://localhost:2000/loadapps?email='+userdetails['email'])
+        xhr.open('GET','http://localhost:2000/loadapps?email='+user.getEmail())
         xhr.send()
     }
 
@@ -435,6 +488,70 @@ class AppManager{
 
 }
 
+class CommandLine{
+    session={}
+    cmdLib = {'cd':'cd(options,aargs)','ls':'ls()','del':'del()','pwd':'pwd()','ver':'ver()','mk':'mk()','mkdir':'mkdir(options,aargs)','pkg':'pkg()',
+        'root':'root()','help':'help()','exec':'exec()','load':'load()', 'dataman':'dataman()', 'appman':'appman()'}
+    temp = Object.keys(this.cmdLib)
+    cmdLibLoc='http://localhost:2000/apps/sys/ter243min/cmdlibs/'
+    //TODO create environmental variables and file locations for the global commands
+    getCWD(){
+        console.log(this.session)
+        return this.session['cwd']
+    }
+    modifyCwd(options,aargs){
+        if(options=='add'){
+            this.session['cwd']+='/'+aargs
+        }
+        else if (options=='remove'){
+
+        }
+    }
+    async createSession(){
+        let s='sess'+Math.floor(Math.random()*10000)
+        // console.log('session created')
+        this.session = {'cwd':'home','sessionId':s,'curchild':0,'dirdata':0}
+        console.log(this.session)
+        let te=await filemanager.getChildren(this.getCWD())
+        this.session.dirdata=await te.result
+        let t=[]
+        for (let i=0;i<te.length;i++){
+            t.push(te[i].name)
+        }
+        this.session.curchild=t
+        console.log(this.session)
+    }
+    LoadCmdFiles(){
+        for(let i in this.temp){
+            let script = document.createElement('script')
+            script.src=this.cmdLibLoc+this.temp[i]+'.js'
+            document.head.append(script)
+        }
+    }
+    processInput(input){
+        let input_splitted = input.split(' ')
+        let cmd = input_splitted[0]
+        return this.cmdParser(cmd,input_splitted.splice(1,))
+    }
+    cmdParser(cmd,args){
+        if(this.temp.indexOf(cmd)!=-1) {
+            //parsing options
+            let options = ''
+            let argments = []
+            for (let i = 0; i < args.length; i++) {
+                console.log(args[i])
+                if (args[i].startsWith('-', 0)) options += args[i].substring(1,)
+                else argments.push(args[i])
+            }
+            options = options.split('')
+            return this.parser(cmd, options, argments)
+        }
+        return '<label style="color: #FF5722">Unknown Command : '+cmd+'</label>'
+    }
+    parser(cmd,options,aargs){
+        return eval(this.cmdLib[cmd])
+    }
+}
 
 class System{
     appfocused=0
@@ -462,9 +579,9 @@ class System{
             sec: 0,
         },
         background: {
-            backgroundimage: 0,
+            backgroundimage: 1,
             backgroundcolor: '#f08282',
-            backgroundurl: '',
+            backgroundurl: 'http://localhost:2000/main/default.png',
         },
         appdrawer: {
             onlyhome: 0,
@@ -519,9 +636,9 @@ class System{
             sec: 0,
         },
         background: {
-            backgroundimage: 0,
+            backgroundimage: 1,
             backgroundcolor: '#f08282',
-            backgroundurl: '',
+            backgroundurl: 'http://localhost:2000/main/default.png',
         },
         appdrawer: {
             onlyhome: 0,
@@ -576,6 +693,7 @@ class System{
     loadsettings(){
         datamanager.load('njk2d4kd',(res)=>{
             this.settings = res
+            this.settings.controlpannel.loggedin=user.getEmail()
             this.changeTheme()
             this.initSettings()
         })
@@ -763,6 +881,7 @@ class System{
     }
     maximizeApp(appId) {
         document.getElementById(appId).style.display = 'inline'
+        taskmanager.taskmanager[appId].minimize=0
     }
     notify(appId,msg,exec=null){
         if(appmanager.Apps[appId].notification) {
@@ -795,10 +914,12 @@ class System{
                     if (Object.keys(this.notifications).length == 0) {
                         document.getElementById('no-notifications').style.display = 'inline'
                         document.getElementById('clear-all').style.display = 'none'
+                        document.getElementById('notification-btn').click()
                     }
                     try {
-                        document.getElementById('notification-window').removeChild(document.getElementById(id).parentElement)
-                    }catch (e) {}
+                        document.getElementById('notification-window').removeChild(document.getElementById(e.target.id).parentElement)
+                    }catch (e) {
+                    }
                 }, 400)
             }
             ele.append(name, message, clear)
@@ -831,15 +952,14 @@ class System{
                 let id= e.target.id
                 let appId = id.split('-')[0]
                 if(taskmanager.taskmanager[appId].minimize==1){
-                    console.log(2)
                     this.maximizeApp(appId)
                     maxZIndex+=1
                     document.getElementById(appId).style.zIndex=maxZIndex
-                    taskmanager.taskmanager[appId].minimize=0
                 }
                 else{
-                    maxZIndex+=1
-                    document.getElementById(appId).style.zIndex=maxZIndex
+                    this.minimizeApp(appId)
+                    // maxZIndex+=1
+                    // document.getElementById(appId).style.zIndex=maxZIndex
                 }
             }
             document.getElementById('app-pinned').append(ele)
@@ -938,21 +1058,26 @@ class System{
 
         document.getElementById('app-runner').style.backgroundColor = this.settings.background.backgroundcolor
 
+        document.getElementById('notification-window').style.backgroundColor = effective.background
+        document.getElementById('notification-window').style.color = effective.fontcolor
 
-        if (this.settings.background.backgroundimage){
+
+        if(this.settings.background.backgroundimage==1) {
+            document.getElementById('app-runner').style.background = `url(${this.default_settings.background.backgroundurl})`
+            document.getElementById('app-runner').style.backgroundSize = `cover`
+        }
+        else if(this.settings.background.backgroundimage==0) {
+            document.getElementById('app-runner').style.removeProperty('background')
+            document.getElementById('app-runner').style.backgroundColor=this.settings.background.backgroundcolor
+        }
+        else{
             document.getElementById('app-runner').style.background = `url(${this.settings.background.backgroundurl})`
             document.getElementById('app-runner').style.backgroundSize = `cover`
         }
-        else{
-            document.getElementById('app-runner').style.background = this.settings.background.backgroundcolor
-        }
-
-
     }
     initAppview() {
         document.getElementById('app-view-right').innerText = ''
         let keys = Object.keys(appmanager.Apps)
-        console.log(keys)
         for(let i=0;i<keys.length;i++){
             let ic
             let div = document.createElement('label')
@@ -1008,40 +1133,47 @@ class System{
             this.settings.controlpannel.loggedin = userdetail['email']
             let xhr = new XMLHttpRequest()
             xhr.onreadystatechange = function () {
-                if(xhr.readyState == 4){
+                if (xhr.readyState == 4) {
                     let res = JSON.parse(xhr.response)
-                    if(res.status==1){
-                        userdetails['name']=userdetail['name']
-                        userdetails['email']=userdetail['email']
-                        userdetails['password']=userdetail['password']
-                        document.getElementById('username').innerText=userdetail['name']
+                    if (res['status']==1) {
+                        //TODO calling init twice
+                        user.init(userdetail['name'], userdetail['email'], userdetail['password'], userdetail['uniqueId'])
+                        document.getElementById('username').innerText = userdetail['name']
                         sys.savesettings()
-                        //TODO:save settings or default settings?
+                        return true
                     }
+                    else return false
+                    //TODO:save settings or default settings
                 }
             }
-            xhr.open('POST','http://localhost:2000/signup')
-            xhr.setRequestHeader('Content-Type','application/json;charset=UTF-8')
-            xhr.send(JSON.stringify({'email':userdetail['email'],'password':userdetail['password'],'username':userdetail['name']}))
+            xhr.open('POST', 'http://localhost:2000/signup')
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
+            xhr.send(JSON.stringify({
+                'email': userdetail['email'],
+                'password': userdetail['password'],
+                'username': userdetail['name'],
+                'uniqueId': userdetail['uniqueId']
+            }))
         }
     }
+
     login(email,password){
         let xhr = new XMLHttpRequest()
         xhr.onreadystatechange = function () {
             if(xhr.readyState == 4){
                 let res = JSON.parse(xhr.response)
                 if(res['status']==1) {
-                    userdetails['name'] = res['username']
-                    userdetails['email'] = email
-                    userdetails['password'] = password
-                    document.getElementById('username').innerText=userdetails['name']
+                    user.init(res['username'],email,password,res['uniqueId'])
+                    document.getElementById('username').innerText=user.getName()
                     document.getElementById('login-window').style.display ='none'
                     document.getElementById('user-info-window').style.display='flex'
                     sys.loadsettings()
                     appmanager.loadApps()
+                    return true
                 }
                 else{
                     document.getElementById('login-error').style.display='inline'
+                    return false
                 }
             }
 
@@ -1050,6 +1182,7 @@ class System{
         xhr.setRequestHeader('Content-Type','application/json;charset=UTF-8')
         xhr.send(JSON.stringify({'email':email,'password':password}))
     }
+
     getaccounts(){
         return this.settings.controlpannel.accounts
     }
@@ -1064,9 +1197,7 @@ class System{
 }
 
 class DataManager{
-
     data={}
-
     initApps(){
         let xhr = new XMLHttpRequest()
         xhr.onreadystatechange = function () {
@@ -1077,7 +1208,7 @@ class DataManager{
         }
         xhr.open('POST','http://localhost:2000/initapp')
         xhr.setRequestHeader('Content-Type','application/json;charset=UTF-8')
-        xhr.send(JSON.stringify({'email':userdetails['email'],'apps':appmanager.Apps,'executors':appmanager.executors}))
+        xhr.send(JSON.stringify({'email':user.getEmail(),'apps':appmanager.Apps,'executors':appmanager.executors}))
     }
     saveapp(app){
         console.log(app)
@@ -1090,12 +1221,12 @@ class DataManager{
         }
         xhr.open('POST','http://localhost:2000/saveapp')
         xhr.setRequestHeader('Content-Type','application/json;charset=UTF-8')
-        xhr.send(JSON.stringify({'email':userdetails['email'],'app':app,'executors':appmanager.executors}))
+        xhr.send(JSON.stringify({'email':user.getEmail(),'app':app,'executors':appmanager.executors}))
     }
 
     save(appId,data){
         console.log(appId,data)
-        if(this.haswriteAccess(appId) && userdetails['email']!=0) {
+        if(this.haswriteAccess(appId) && user.getEmail()!=0) {
             if (data==self)
                 data=this.data[appId]
             let xhr = new XMLHttpRequest()
@@ -1103,15 +1234,17 @@ class DataManager{
                 if (xhr.readyState == 4) {
                     let res = JSON.parse(xhr.response)
                     console.log(res)
+                    return true
                 }
             }
             xhr.open('POST', 'http://localhost:2000/savedata')
             xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
-            xhr.send(JSON.stringify({'email': userdetails['email'], 'appId': appId, 'data': data}))
+            xhr.send(JSON.stringify({'email': user.getEmail(), 'appId': appId, 'data': data}))
         }
+        else return false
     }
     load(appId,callback){
-        if(this.hasreadAccess(appId) && userdetails['email']!=0) {
+        if(this.hasreadAccess(appId) && user.getEmail()!=0) {
             let xhr = new XMLHttpRequest()
             xhr.onreadystatechange = () => {
                 if (xhr.readyState == 4) {
@@ -1120,7 +1253,7 @@ class DataManager{
                     if (callback) callback(res.data)
                 }
             }
-            xhr.open('GET', `http://localhost:2000/loaddata?appId=${appId}&email=${userdetails['email']}`)
+            xhr.open('GET', `http://localhost:2000/loaddata?appId=${appId}&email=${user.getEmail()}`)
             xhr.send()
         }
         else{
@@ -1141,50 +1274,140 @@ class DataManager{
     }
 
 }
+//TODO filemanager security issues. update the functions so they can be accessed by the cmd only
+class FileManager{
+    fileStructure = {
+        size:0,
+        lastupdated:0,
+    }
+    initDir(id){
+        fetch(`http://localhost:2002/initdir?id=${id}`,{method:"GET"})
+    }
 
+    async getChildren(path){
+        let r;
+        let userOrGuest = user.IsloggedIn()?'users' : 'guest'
+        let id = user.IsloggedIn()?user.getUniqueId() : user.guestId
+        await fetch(`http://localhost:2002/getchildren?uniqueId=${id}&path=${path}&userguest=${userOrGuest}`,{method:'GET'})
+            .then(res=>res.json())
+            .then((res)=>{r=res})
+        return r;
+    }
+    // async getParent(child){
+    //     let r;
+    //     await fetch(`http://localhost:2002/getparent?email=${user.getEmail()}&name=${child}`,{method:'GET'})
+    //         .then(res=>res.json())
+    //         .then((res)=>{r=res})
+    //     return r;
+    // }
+    async details(path){
+        let r;
+        let userOrGuest = user.IsloggedIn()?'users' : 'guest'
+        let id = user.IsloggedIn()?user.getUniqueId() : user.guestId
+        await fetch(`http://localhost:2002/getdetails?userguest=${userOrGuest}&path=${path}&uniqueId=${id}`,{method:'GET'})
+            .then(res=>res.json())
+            .then((res)=>{r=res})
+        return r;
+    }
+    async root(){
+        let r;
+        let userOrGuest = user.IsloggedIn()?'users' : 'guest'
+        let id = user.IsloggedIn()?user.getUniqueId() : user.guestId
+        await fetch(`http://localhost:2002/root?userguest=${userOrGuest}uniqueId=${id}`)
+            .then(res=>res.json())
+            .then((res)=>{r=res})
+        return r
+    }
+    async createFolder(path,name){
+        let r;
+        let userOrGuest = user.IsloggedIn()?'users' : 'guest'
+        let id = user.IsloggedIn()?user.getUniqueId() : user.guestId
+        await fetch(`http://localhost:2002/createfolder?userguest=${userOrGuest}&uniqueId=${id}&path=${path}&name=${name}`,{method:'post'})
+            .then(res=>res.json())
+            .then((res)=>{r=res})
+        return r;
+    }
+    async createFile(path,name){
+        let r;
+        let userOrGuest = user.IsloggedIn()?'users' : 'guest'
+        let id = user.IsloggedIn()?user.getUniqueId() : user.guestId
+        await fetch(`http://localhost:2002/createfile?userguest=${userOrGuest}&uniqueId=${id}&path=${path}&name=${name}`,{method:'GET'})
+            .then(res=>res.json())
+            .then((res)=>{r=res})
+        return r;
+    }
+    async delete(path){
+        let r;
+        let userOrGuest = user.IsloggedIn()?'users' : 'guest'
+        let id = user.IsloggedIn()?user.getUniqueId() : user.guestId
+        await fetch(`http://localhost:2002/delete?userguest=${userOrGuest}&uniqueId=${id}&name=${path}`,{method:'GET'})
+            .then(res=>res.json())
+            .then((res)=>{r=res})
+        return r;
+    }
+    async rename(src,des){
+        let r;
+        let userOrGuest = user.IsloggedIn()?'users' : 'guest'
+        let id = user.IsloggedIn()?user.getUniqueId() : user.guestId
+        await fetch(`http://localhost:2002/rename?userguest=${userOrGuest}&uniqueId=${id}&src=${src}&des=${des}`,{method:'GET'})
+            .then(res=>res.json())
+            .then((res)=>{r=res})
+        return r;
+    }
+
+}
+//ENTRY
+var user = new User()
 var taskmanager = new TaskManager()
 var sys = new System()
 var datamanager = new DataManager()
 var appmanager = new AppManager()
-
+var filemanager = new FileManager()
+var cmdline = new CommandLine()
+console.log(user.guestId)
+filemanager.initDir(user.guestId)
+cmdline.LoadCmdFiles()
 sys.startClock()
 sys.changeTheme()
 sys.initSettings()
 sys.initAppview()
+async function test() {
+    console.log(await filemanager.root())
+}
 
-
-function signup(){
+async function signup() {
     let email = document.getElementById('signup-email').value
     let name = document.getElementById('signup-username').value
     let password = document.getElementById('signup-password').value
+    let uniqueId = 'user' + Math.floor(Math.random() * 10000)
     let xhr = new XMLHttpRequest()
     xhr.onreadystatechange = function () {
-        if(xhr.readyState == 4){
+        if (xhr.readyState == 4) {
             let res = JSON.parse(xhr.response)
-            if(res.status==1){
-                userdetails['name']=name
-                userdetails['email']=email
-                userdetails['password']=password
-                // sys.addaccount('njk2d4kd',userdetails)
-                document.getElementById('username').innerText=name
-                document.getElementById('signup-window').style.animationName ='fade'
+            if (res['status'] == 1) {
+                user.init(name, email, password, uniqueId)
+                document.getElementById('username').innerText = name
+                document.getElementById('signup-window').style.animationName = 'fade'
                 datamanager.initApps()
-                setTimeout(()=>{
-                    document.getElementById('signup-window').style.display ='none'
-                    document.getElementById('user-info-window').style.display='flex'
-                    document.getElementById('signup-window').style.animationName =''
-                    document.getElementById('user-info-window').style.animationName='defade'
+                filemanager.initDir(user.getUniqueId())
+                setTimeout(() => {
+                    document.getElementById('signup-window').style.display = 'none'
+                    document.getElementById('user-info-window').style.display = 'flex'
+                    document.getElementById('signup-window').style.animationName = ''
+                    document.getElementById('user-info-window').style.animationName = 'defade'
                     sys.savesettings()
-                },500)
-            }
-            else{
-                document.getElementById('signup-error').style.display='inline'
-            }
+                }, 500)
+            } else document.getElementById('signup-error').style.display = 'inline'
         }
     }
-    xhr.open('POST','http://localhost:2000/signup')
-    xhr.setRequestHeader('Content-Type','application/json;charset=UTF-8')
-    xhr.send(JSON.stringify({'email':email,'password':password,'username':name}))
+    xhr.open('POST', 'http://localhost:2000/signup')
+    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
+    xhr.send(JSON.stringify({
+        'email': email,
+        'password': password,
+        'username': name,
+        'uniqueId': uniqueId
+    }))
 }
 
 function login(){
@@ -1195,10 +1418,8 @@ function login(){
         if(xhr.readyState == 4){
             let res = JSON.parse(xhr.response)
             if(res['status']==1) {
-                userdetails['name'] = res['username']
-                userdetails['email'] = email
-                userdetails['password'] = password
-                document.getElementById('username').innerText=userdetails['name']
+                user.init(res['username'],email,password,res['uniqueId'])
+                document.getElementById('username').innerText=res['username']
                 document.getElementById('login-window').style.animationName ='fade'
                 setTimeout(()=>{
                     document.getElementById('login-window').style.display ='none'
@@ -1212,7 +1433,9 @@ function login(){
             }
             else{
                 document.getElementById('login-error').style.display='inline'
+                return false
             }
+            return true
         }
 
     }
@@ -1221,7 +1444,11 @@ function login(){
     xhr.send(JSON.stringify({'email':email,'password':password}))
 }
 function logout(){
-    userdetails = {'email':0,'name':0,'password':0}
+    document.getElementById('user-info-window').style.display = 'none'
+    document.getElementById('user-info-window').style.animationName= ''
+    document.getElementById('login-window').style.animationName = 'defade'
+    document.getElementById('login-window').style.display ='flex'
+    user.reset()
     sys.reset()
 }
 
@@ -1237,6 +1464,7 @@ document.getElementById('user-profile').onclick = ()=>{
         userprofile =1
         document.getElementById('user-profile-window').style.display='flex'
         document.getElementById('user-profile-window').style.animationName='show-user-profile'
+        setTimeout(()=>{document.getElementById('login-email').focus()},300)
     }
 }
 document.getElementById('clear-all').onclick =()=>{
@@ -1246,13 +1474,14 @@ document.getElementById('clear-all').onclick =()=>{
         document.getElementById(k[i]+'-clear').click()
     }
 }
-
+//TODO::make some event listeners like esc and enter in the context of specific web elements.
 document.getElementById('login-window-btn').onclick = ()=>{
     document.getElementById('signup-window').style.animationName = 'fade'
     setTimeout(()=>{
         document.getElementById('signup-window').style.display = 'none'
         document.getElementById('login-window').style.display = 'flex'
         document.getElementById('login-window').style.animationName = 'defade'
+        document.getElementById('login-email').focus()
     },500)
 }
 document.getElementById('signup-window-btn').onclick = ()=>{
@@ -1261,6 +1490,7 @@ document.getElementById('signup-window-btn').onclick = ()=>{
         document.getElementById('login-window').style.display = 'none'
         document.getElementById('signup-window').style.display = 'flex'
         document.getElementById('signup-window').style.animationName = 'defade'
+        document.getElementById('signup-username').focus()
     },500)
 }
 document.getElementById('signup-btn').onclick = ()=>{
@@ -1280,11 +1510,11 @@ document.getElementById('logout').onclick =()=>{
         document.getElementById('user-info-window').style.animationName= ''
         document.getElementById('login-window').style.animationName = 'defade'
         document.getElementById('login-window').style.display ='flex'
-
     },500)
 
 }
 document.onmousemove = (e)=>{
+    //undock taskbar
     if(sys.settings.taskbar.dock) {
         let y = e.clientY
         if (Math.abs(y - window.innerHeight) < 30) {
