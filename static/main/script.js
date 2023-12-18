@@ -345,6 +345,12 @@ class AppManager{
     permission={
 
     }
+    getAppId(appname){
+        if(appname in this.AppId){
+            return this.AppId[appname]
+        }
+        return 0
+    }
 
     saveApp(app) {
         if(user.getEmail()!=0)
@@ -490,9 +496,12 @@ class AppManager{
 
 class CommandLine{
     session={}
-    cmdLib = {'cd':'cd(options,aargs)','ls':'ls()','del':'del()','pwd':'pwd()','ver':'ver()','mk':'mk()','mkdir':'mkdir(options,aargs)','pkg':'pkg()',
-        'root':'root()','help':'help()','exec':'exec()','load':'load()', 'dataman':'dataman()', 'appman':'appman()'}
+    cmdLib = {'cd':'cd(options,aargs)','ls':'ls()','del':'del()','pwd':'pwd()','ver':'ver()',
+        'mkdir':'mkdir(options,aargs)','pkg':'pkg()', 'root':'root()','help':'help()','exec':'exec(options,aargs)',
+        'load':'load()', 'dataman':'dataman()', 'appman':'appman()','exit':'exit()','pkill':'pkill(options,aargs)',
+        'hist':'hist(options,aargs)'}
     temp = Object.keys(this.cmdLib)
+    history=[]
     cmdLibLoc='http://localhost:2000/apps/sys/ter243min/cmdlibs/'
     //TODO create environmental variables and file locations for the global commands
     getCWD(){
@@ -544,9 +553,13 @@ class CommandLine{
                 else argments.push(args[i])
             }
             options = options.split('')
+            console.log(cmd, options, argments)
             return this.parser(cmd, options, argments)
         }
-        return '<label style="color: #FF5722">Unknown Command : '+cmd+'</label>'
+        let html = document.createElement('label')
+        html.style.color = '#B0BEC5'
+        html.innerText = 'Unknown Command : '+cmd
+        return {'status': 0, msg: html.outerHTML}
     }
     parser(cmd,options,aargs){
         return eval(this.cmdLib[cmd])

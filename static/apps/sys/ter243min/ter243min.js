@@ -6,10 +6,9 @@ document.getElementById('ter243min-close').onclick=()=>{
     taskmanager.KillApp('ter243min')
 }
 let ter243min_user = 'Guest'
-let ter243min_count = 0
-let ter243min_CmdHistory = []
+let ter243min_count = -1
 let ter243min_ssid=0
-let ter243min_pointer=ter243min_CmdHistory.length-1
+let ter243min_pointer=-1
 function ter243min_init() {
     cmdline.createSession()
     if (user.IsloggedIn()){
@@ -32,12 +31,31 @@ function ter243min_addconsole(){
     ter243min_div.className = 'ter243min_div'
     ter243min_lab.className = 'ter243min_lab'
     ter243min_count++;
+    console.log(ter243min_count,35)
     ter243min_input.id = 'ter243min_input'+ter243min_count
     ter243min_input.addEventListener('keydown',async (e)=>{
         if (e.key=='Enter') {
-            ter243min_CmdHistory.push(e.target.value)
+            cmdline.history.push(e.target.value)
             await ter243min_process_console(e.target.value)
             ter243min_addconsole()
+        }
+        else if(e.key=='ArrowUp'){
+            if(ter243min_pointer >=0) {
+                document.getElementById('ter243min_input' + ter243min_count).value = cmdline.history[ter243min_pointer]
+                console.log(ter243min_pointer,'ter243min_input' + ter243min_count,46)
+                ter243min_pointer--
+                if(ter243min_pointer==-1){
+                    ter243min_pointer=0
+                }
+            }
+        }
+        else if(e.key=='ArrowDown'){
+            ter243min_pointer++
+            if(ter243min_pointer <=cmdline.history.length-1){
+                document.getElementById('ter243min_input' + ter243min_count).value = cmdline.history[ter243min_pointer]
+                console.log(ter243min_pointer,'ter243min_input' + ter243min_count,54)
+            }
+            else ter243min_pointer = cmdline.history.length-1
         }
     })
     ter243min_input.className = 'ter243min_console_input'
@@ -48,20 +66,14 @@ function ter243min_addconsole(){
 }
 async function ter243min_process_console(input){
     let ter243minlbl = await cmdline.processInput(input)
+    console.log(ter243minlbl)
+    ter243min_pointer++;
     let ter243min_v = document.createElement('label')
-    if (ter243minlbl.status==1 && ter243minlbl.msg.length >0) {
+    if (ter243minlbl.msg.length >0) {
         ter243min_v.innerHTML = ter243minlbl.msg
         document.getElementById('ter243min-main-page').append(ter243min_v)
     }
 }
 
-document.onkeydown = (e)=>{
-    if(e.key=='ArrowUp'){
-
-    }
-    else if(e.key=='ArrowDown'){
-
-    }
-}
 ter243min_init()
 ter243min_addconsole()

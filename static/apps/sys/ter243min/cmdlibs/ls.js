@@ -5,7 +5,7 @@ function ls(options,aargs){
     result.forEach(e=>{
         let t = document.createElement('label')
         t.innerText = e
-        t.style.margin = '0 10px'
+        t.style.margin = '0 2px'
         html.append(t)
     })
     return {'status':1,'msg':html.outerHTML,'result':result}
