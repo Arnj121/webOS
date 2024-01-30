@@ -16,7 +16,7 @@ Virtualization services that provides users with easy access to a web-based OS a
 - see the [README](https://github.com/Arnj121/fonty/blob/master/README.md) file for installation of fonty.
 - run ``npm install`` to install all dependencies.
 - navigate to bin folder where mongoDB is installed.
-- start mongoDB server using ``mongod.exe --data <data directory>``
+- start mongoDB server using ``mongod.exe --dbpath <data directory>``
 - start the app using ``node app`` and ``node FiFx``
 - access the application on [https://localhost:2000/](https://localhost:2000/).
 - port can be changed in the **app.js** file
