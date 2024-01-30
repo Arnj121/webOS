@@ -5,7 +5,8 @@ Virtualization services that provides users with easy access to a web-based OS a
 - <a href='#installation'>Installation</a>
 - <a href="#usage">Usage</a>
 - <a href='#demos'>Demos</a>
-- <a href="#features">Features</a>
+- <a href="#features">Features</a> 
+- <a href="#contribution">Contribution</a>
 ## Installation
 ### Installation using node and express
 - Install [NodeJS](https://nodejs.org/en/download) by selecting your Operating System.
@@ -16,11 +17,23 @@ Virtualization services that provides users with easy access to a web-based OS a
 - run ``npm install`` to install all dependencies.
 - navigate to bin folder where mongoDB is installed.
 - start mongoDB server using ``mongod.exe --data <data directory>``
-- start the app using ``npm app`` and ``npm FiFx``
+- start the app using ``node app`` and ``node FiFx``
 - access the application on [https://localhost:2000/](https://localhost:2000/).
-- port can be changed in the app.js file
+- port can be changed in the **app.js** file
 ### Installation using docker
 
 ## Demos
 
 ## Features
+- Allows customizable User interface.
+- easy integeration of feature applications within the OS.
+- custom template to design applications for the OS.
+
+## Contribution
+&nbsp;
+The application is constantly going through changes and addition of new features. If you want to integrate a new application into the OS, follow these steps
+- run ``node create-app <app-name> <app-id>`` to create a template for the app.
+- open the **<app-name>** directory which contains the html, javascript and css file.
+- Edit these files just like you would to design a website.
+- Refer the ``static/apps/sys/xo23qwrr`` folder as a guide.
+- upon reloading, you'll find the app inside the application.
