@@ -497,11 +497,12 @@ class AppManager{
 class CommandLine{
     session={}
     cmdLib = {'cd':'cd(options,aargs)','ls':'ls()','del':'del()','pwd':'pwd()','ver':'ver()',
-        'mkdir':'mkdir(options,aargs)','pkg':'pkg()', 'root':'root()','help':'help()','exec':'exec(options,aargs)',
+        'mkdir':'mkdir(options,aargs)','pkg':'pkg(options,aargs)', 'root':'root()','help':'help()','exec':'exec(options,aargs)',
         'load':'load()', 'dataman':'dataman()', 'appman':'appman()','exit':'exit()','pkill':'pkill(options,aargs)',
         'hist':'hist(options,aargs)'}
     temp = Object.keys(this.cmdLib)
     history=[]
+    packagesAvailable={}
     cmdLibLoc='http://localhost:2000/apps/sys/ter243min/cmdlibs/'
     //TODO create environmental variables and file locations for the global commands
     getCWD(){
@@ -530,11 +531,20 @@ class CommandLine{
         this.session.curchild=t
         console.log(this.session)
     }
-    LoadCmdFiles(){
-        for(let i in this.temp){
+    LoadCmdFiles(file=0,type=0,id=0){
+        if (file!=0){
             let script = document.createElement('script')
-            script.src=this.cmdLibLoc+this.temp[i]+'.js'
+            script.src = `http://localhost:2000/userfiles/${type}/${id}/home/bin/${file}.js`
             document.head.append(script)
+            this.cmdLib[file]=`${file}(options,aargs)`
+            console.log(this.cmdLib)
+        }
+        else {
+            for (let i in this.temp) {
+                let script = document.createElement('script')
+                script.src = this.cmdLibLoc + this.temp[i] + '.js'
+                document.head.append(script)
+            }
         }
     }
     processInput(input){

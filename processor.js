@@ -228,9 +228,56 @@ const initDir =(req,res)=>{
     fs.mkdir(`./static/userfiles/guest/${id}/home`,(err)=>{
         if(err) console.log(err)
     })
+    fs.mkdir(`./static/userfiles/guest/${id}/home/documents`,(err)=>{
+        if(err) console.log(err)
+    })
+    fs.mkdir(`./static/userfiles/guest/${id}/home/downloads`,(err)=>{
+        if(err) console.log(err)
+    })
+    fs.mkdir(`./static/userfiles/guest/${id}/home/bin`,(err)=>{
+        if(err) console.log(err)
+    })
+
 }
 
+const pkgupdate = (req,res)=>{
+    let id = req.query.id
+    let type = req.query.type
+    fs.readFile('./pkgs.json','UTF-8',(err,data)=>{
+        if (err){
+            res.send({'status':0,'result':'unable to get package details'})
+        }
+        else{
+            fs.cp('./pkgs.json',`./static/userfiles/${type}/${id}/home/bin/pkgs.json`,(err)=>{
+                if(err) console.log(err);
+            })
+            res.send({'status':1,'result':data})
+        }
+    })
+}
 
+const getFile = (req,res)=>{
+    let id = req.query.id;
+    let type = req.query.type;
+    let path = req.query.path;
+    fs.readFile(`./static/userfiles/${type}/${id}/${path}`,'UTF-8',(err,data)=>{
+        if (err) console.log(err);
+        else{
+            return {'status':1,'data':data}
+        }
+    })
+
+}
+
+const installPkg = (req,res)=>{
+    let id =  req.query.id;
+    let type = req.query.type
+    let pkgname = req.query.pkgname
+    fs.cp(`./static/apps/custom/ter243min/${pkgname}`,`./static/userfiles/${type}/${id}/home/bin/${pkgname}`,(err)=>{
+        if(err)console.log(err)
+    })
+    res.send({'status':1,'msg':'package installed successfully'})
+}
 module.exports={rename,createFile,getChildren,deleteFile,createFolder,getdetails,root,structure,getApps,getApp,signup,
-    login,savedata,loaddata,initapp,saveapp,loadapps,saveapps,initDir}
+    login,savedata,loaddata,initapp,saveapp,loadapps,saveapps,initDir,pkgupdate,installPkg,getFile}
 
