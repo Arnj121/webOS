@@ -29,7 +29,7 @@ Virtualization services that provides users with easy access to a web-based OS a
 - Do ``docker load --image <name of .tar file>`` for both the images.
 - Start MongoDB.(see <a href='#installation'>Installation</a> section of MongoDB).
 - Start the images using ``docker run -d -p 2045:2045 fonty`` and ``docker run -d -p 2000:2000 webos``
-- In a browser, type <a href='http://localhost:2000'>http://localhost:2000</a>
+- In a browser, type <a href='http://localhost:2000'>http://localhost:2000</a> to start the app.
 ## Demos
 
 ## Features
